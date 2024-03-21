@@ -1,0 +1,87 @@
+#include <stdio.h>
+
+// Define instructions
+#define ADD 1
+#define SUB 2
+#define MUL 3
+#define DIV 4
+
+// Define stages
+#define FETCH 1
+#define DECODE 2
+#define EXECUTE 3
+
+// Structure representing an instruction
+typedef struct {
+    int opcode;
+    int operand1;
+    int operand2;
+} Instruction;
+
+// Structure representing a pipeline register
+typedef struct {
+    Instruction instr;
+    int stage;
+} PipelineRegister;
+
+// Function to execute an instruction
+void execute_instruction(Instruction instr) {
+    switch (instr.opcode) {
+        case ADD:
+            printf("Addition operation: %d + %d\n", instr.operand1, instr.operand2);
+            break;
+        case SUB:
+            printf("Subtraction operation: %d - %d\n", instr.operand1, instr.operand2);
+            break;
+        case MUL:
+            printf("Multiplication operation: %d * %d\n", instr.operand1, instr.operand2);
+            break;
+        case DIV:
+            printf("Division operation: %d / %d\n", instr.operand1, instr.operand2);
+            break;
+        default:
+            printf("Unknown operation\n");
+            break;
+    }
+}
+
+int main() {
+    // Initialize pipeline registers
+    PipelineRegister fetch_reg = {{ADD, 10, 5}, FETCH};
+    PipelineRegister decode_reg = {{0, 0, 0}, DECODE};
+    PipelineRegister execute_reg = {{0, 0, 0}, EXECUTE};
+
+    // Simulate pipeline stages
+    while (fetch_reg.instr.opcode != 0 || decode_reg.instr.opcode != 0 || execute_reg.instr.opcode != 0) {
+        // Execute stage
+        if (execute_reg.stage == EXECUTE) {
+            execute_instruction(execute_reg.instr);
+            execute_reg.stage = 0;
+        }
+
+        // Move instruction from decode to execute stage
+        if (decode_reg.stage == DECODE) {
+            execute_reg = decode_reg;
+            decode_reg.stage = 0;
+        }
+
+        // Move instruction from fetch to decode stage
+        if (fetch_reg.stage == FETCH) {
+            decode_reg = fetch_reg;
+            fetch_reg.stage = 0;
+        }
+
+        // Fetch next instruction
+        if (fetch_reg.stage == 0) {
+            printf("Fetching instruction...\n");
+            // In a real system, you would fetch instructions from memory.
+            // For simplicity, we just use a hardcoded instruction here.
+            fetch_reg.instr.opcode = SUB;
+            fetch_reg.instr.operand1 = 20;
+            fetch_reg.instr.operand2 = 8;
+            fetch_reg.stage = FETCH;
+        }
+    }
+
+    return 0;
+}
